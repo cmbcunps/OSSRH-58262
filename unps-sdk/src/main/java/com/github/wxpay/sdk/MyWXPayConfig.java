@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
-import com.cmbc.unps.sdk.config.Configuration;
+import com.github.cmbcunps.sdk.config.Configuration;
 
 public class MyWXPayConfig extends WXPayConfig {
 
