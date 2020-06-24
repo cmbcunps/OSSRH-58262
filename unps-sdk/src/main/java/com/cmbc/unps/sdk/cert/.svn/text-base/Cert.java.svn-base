@@ -1,0 +1,25 @@
+package com.cmbc.unps.sdk.cert;
+
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
+import cmbc.cfca.x509.certificate.X509Cert;
+
+public class Cert {
+	/** 民生证书cmbc */
+	public X509Cert cmbcCert = null; // 公钥证书,用于加密报文
+	public PublicKey cmbcPublicKey = null; // 公钥,用于验签
+	public X509Cert cmbcSm2Cert = null;
+	public PrivateKey cmbcPrivateKey = null;
+
+	public String cmbcSm2Password = null;
+
+	/** 商户证书merchant */
+	public X509Cert merCert = null; // 公钥
+	public PublicKey merPublicKey = null; // 公钥,用于验签
+	public X509Cert merSm2Cert = null;
+	public PrivateKey merPrivateKey = null;
+
+	public String merchantNum = null;
+	public String merSm2Password = null;
+}

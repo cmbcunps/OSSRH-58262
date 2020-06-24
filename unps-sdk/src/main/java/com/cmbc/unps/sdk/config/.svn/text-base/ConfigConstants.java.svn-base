@@ -1,0 +1,39 @@
+package com.cmbc.unps.sdk.config;
+
+public class ConfigConstants {
+
+	public static final String unps_transfronturl = "unps.transfronturl";
+	public static final String unps_transurl = "unps.transurl";
+	public static final String unps_queryurl = "unps.queryurl";
+	public static final String unps_fileurl = "unps.fileurl";
+
+	public static final String unps_cmbcurl = "unps.cmbcurl";
+	public static final String unps_keyurl = "unps.keyurl";
+
+	public static final String unps_merchantnum = "unps.merchantnum";
+	public static final String unps_securitytype = "unps.securitytype";
+
+	public static final String unps_custcertpath = "unps.custcertpath";
+	public static final String unps_custsm2path = "unps.custsm2path";
+	public static final String unps_custsm2pass = "unps.custsm2pass";
+
+	public static final String unps_cmbccertpath = "unps.cmbccertpath";
+
+	public static final String filePath_req = "filePath_req";
+	public static final String filePath_res = "filePath_res";
+	public static final String filePath_PAY_T018 = "filePath_PAY_T018";
+
+	public static final String unps_connectTimeout = "unps.connectTimeout";
+	public static final String unps_readTimeout = "unps.readTimeout";
+
+	/* ******************************************************************* */
+	public static final String unps_cmbcRsaKey = "unps.cmbcRsaKey";
+	public static final String unps_cmbcPubKey = "unps.cmbcPubKey";
+
+	public static final String unps_custMd5Key = "unps.custMd5Key";
+	public static final String unps_custAesKey = "unps.custAesKey";
+
+	public static final String unps_cmbcsm2path = "unps.cmbcsm2path";
+	public static final String unps_cmbcsm2pass = "unps.cmbcsm2pass";
+
+}

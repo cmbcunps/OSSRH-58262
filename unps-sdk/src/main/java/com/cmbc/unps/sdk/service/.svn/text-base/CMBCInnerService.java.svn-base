@@ -1,0 +1,58 @@
+package com.cmbc.unps.sdk.service;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.alibaba.fastjson.JSON;
+import com.cmbc.unps.sdk.config.ConfigConstants;
+import com.cmbc.unps.sdk.config.Configuration;
+import com.cmbc.unps.sdk.http.CMBCPostClient;
+import com.cmbc.unps.sdk.security.base.AESUtils;
+import com.cmbc.unps.sdk.security.base.RSAUtil;
+import com.cmbc.unps.sdk.util.JsonHelper;
+import com.cmbc.unps.sdk.util.UnpsUtils;
+
+public class CMBCInnerService {
+
+	private static Logger logger = Logger.getLogger(CMBCInnerService.class);
+
+	public Map<String, String> postKey(Map<String, String> requestMap) throws Exception {
+		String requestUrl = Configuration.getConfig(ConfigConstants.unps_transurl);
+		return postCMBC(requestMap, requestUrl);
+	}
+
+	public Map<String, String> postKey(Map<String, String> requestMap, String requestUrl) throws Exception {
+		return postCMBC(requestMap, requestUrl);
+	}
+
+	@SuppressWarnings({ "unused", "unchecked" })
+	public Map<String, String> postCMBC(Map<String, String> requestMap, String requestUrl) throws Exception {
+		Map<String, String> submitMap = new HashMap<String, String>();
+		Map<String, String> busiMap = new HashMap<String, String>();
+		Map<String, String> responseMap = new HashMap<String, String>();
+		Map<String, Object> responseBusiMap = new HashMap<String, Object>();
+
+		String randCipher1 = (String) requestMap.get("randCipher");
+
+		UnpsUtils.splidReqMap(requestMap, submitMap, busiMap);
+		// RSA签名方式
+		String randCipher_enc = RSAUtil.encrypt(JsonHelper.objectToJson(busiMap));
+		submitMap.put("businessContext", randCipher_enc);
+
+		logger.info("requestUrl:" + requestUrl);
+		logger.info("submitMap:" + JSON.toJSONString(submitMap));
+
+		CMBCPostClient client = new CMBCPostClient();
+		responseMap = client.postCmbc(requestUrl, submitMap);
+		logger.info("responseMap:" + JSON.toJSONString(responseMap));
+
+		String businessContext = (String) responseMap.get("businessContext");
+		String businessContext_dec = AESUtils.decrypt(businessContext, randCipher1.getBytes());
+
+		responseBusiMap = JSON.parseObject(businessContext_dec, Map.class);
+		return responseMap;
+	}
+
+}

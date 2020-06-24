@@ -1,0 +1,196 @@
+package com.cmbc.unps.sdk.http;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.net.ssl.HttpsURLConnection;
+
+import org.apache.log4j.Logger;
+
+import com.cmbc.unps.sdk.config.ConfigConstants;
+import com.cmbc.unps.sdk.config.Configuration;
+import com.cmbc.unps.sdk.exception.ErrorCode;
+import com.cmbc.unps.sdk.exception.PlatformException;
+import com.cmbc.unps.sdk.util.UnpsUtils;
+
+public class CMBCPostClient {
+	private static Logger logger = Logger.getLogger(CMBCPostClient.class);
+
+	public Map<String, String> postCmbc(String requestUrl, Map<String, String> requestMap) throws UnsupportedEncodingException,
+			MalformedURLException, IOException, ProtocolException, PlatformException {
+
+		int connectTimeout = Configuration.getIntegerParams(ConfigConstants.unps_connectTimeout);
+		int readTimeout = Configuration.getIntegerParams(ConfigConstants.unps_readTimeout);
+		return postCmbc(requestUrl, requestMap, PostConstants.isProxy, PostConstants.proxyAddress, PostConstants.proxyPort, connectTimeout,
+				readTimeout);
+	}
+
+	public Map<String, String> postCmbc(String requestUrl, Map<String, String> requestMap, boolean isProxy, String proxyAddress, int proxyPort,
+			int connectTimeout, int readTimeout) throws IOException, PlatformException {
+		long start = System.currentTimeMillis();
+		String requestStr = null;
+		String responseStr = "";
+		Map<String, String> responseMap = new HashMap<String, String>();
+
+		HttpURLConnection conn = null;
+		OutputStream outputStream = null;
+		PrintStream printStream = null;
+		InputStream inputStream = null;
+		InputStreamReader inputStreamReader = null;
+		BufferedReader bufferedReader = null;
+		try {
+			requestStr = getParamStr(requestMap, PostConstants.encoding);
+
+			URL url = new URL(requestUrl);
+			if (isProxy) {
+				InetSocketAddress inetSocketAddress = new InetSocketAddress(proxyAddress, proxyPort);
+				Proxy proxy = new Proxy(Proxy.Type.HTTP, inetSocketAddress);
+				conn = (HttpURLConnection) url.openConnection(proxy);
+			} else {
+				conn = (HttpURLConnection) url.openConnection();
+			}
+			conn.setConnectTimeout(connectTimeout);// 连接超时时间
+			conn.setReadTimeout(readTimeout);// 读取结果超时时间
+			conn.setDoInput(true); // 可读
+			conn.setDoOutput(true); // 可写
+			conn.setUseCaches(false);// 取消缓存
+			conn.setRequestProperty("Content-type", "application/x-www-form-urlencoded;charset=" + PostConstants.encoding);
+			conn.setRequestMethod("POST");
+			if ("https".equalsIgnoreCase(url.getProtocol())) {
+				HttpsURLConnection httpsURLConnection = (HttpsURLConnection) conn;
+				httpsURLConnection.setSSLSocketFactory(new BaseHttpSSLSocketFactory());
+				httpsURLConnection.setHostnameVerifier(new TrustAnyHostnameVerifier());// 解决由于服务器证书问题导致HTTPS无法访问的情况
+			}
+			conn.connect();
+
+			outputStream = conn.getOutputStream();
+			printStream = new PrintStream(outputStream, false, PostConstants.encoding);
+			printStream.print(requestStr);
+			printStream.flush();
+
+			StringBuilder stringBuilder = new StringBuilder(2048);
+			inputStream = conn.getInputStream();
+			inputStreamReader = new InputStreamReader(inputStream, PostConstants.encoding);
+
+			bufferedReader = new BufferedReader(inputStreamReader);
+			String temp = null;
+			while (null != (temp = bufferedReader.readLine())) {
+				stringBuilder.append(temp);
+			}
+			int status;
+			status = conn.getResponseCode();
+			if (PostConstants.status == status) {
+				responseStr = stringBuilder.toString();
+				// Map<String, Object> responseMap = new HashMap<String, Object>();
+				// JSONObject jsonObject = JSON.parseObject(responseStr);
+				// for (Entry<String, Object> entry : jsonObject.entrySet()) {
+				// responseMap.put(entry.getKey(), entry.getValue());
+				// }
+				responseMap = UnpsUtils.jsonToStrMap(responseStr);
+			}
+			return responseMap;
+		} catch (IOException e) {
+			throw new PlatformException(ErrorCode.UNPS_CORE_003, e.getMessage());
+		} finally {
+			long end = System.currentTimeMillis();
+			logger.info("request used:" + (end - start));
+			closeStream(outputStream, printStream, inputStream, inputStreamReader, bufferedReader);
+			conn.disconnect();
+		}
+	}
+
+	private void closeStream(OutputStream outputStream, PrintStream printStream, InputStream inputStream, InputStreamReader inputStreamReader,
+			BufferedReader bufferedReader) {
+		try {
+			if (bufferedReader != null) {
+				bufferedReader.close();
+			}
+		} catch (Exception e) {
+		}
+		try {
+			if (inputStreamReader != null) {
+				inputStreamReader.close();
+			}
+		} catch (Exception e) {
+		}
+		try {
+			if (inputStream != null) {
+				inputStream.close();
+			}
+		} catch (Exception e) {
+		}
+		try {
+			if (printStream != null) {
+				printStream.close();
+			}
+		} catch (Exception e) {
+		}
+		try {
+			if (outputStream != null) {
+				outputStream.close();
+			}
+		} catch (Exception e) {
+		}
+	}
+
+	public String getParamStr(Map<String, String> requestParam, String encoding) throws UnsupportedEncodingException {
+		if (encoding == null || "".equals(encoding)) {
+			encoding = PostConstants.encoding;
+		}
+		StringBuffer stringBuffer = new StringBuffer("");
+		String reqstr = "";
+		if (null != requestParam && 0 != requestParam.size()) {
+			for (Entry<String, String> keyMap : requestParam.entrySet()) {
+				stringBuffer.append(keyMap.getKey() + "="
+						+ (null == keyMap.getValue() || "".equals(keyMap.getValue()) ? "" : URLEncoder.encode((String) keyMap.getValue(), encoding))
+						+ "&");
+			}
+			reqstr = stringBuffer.substring(0, stringBuffer.length() - 1);
+		}
+		return reqstr;
+	}
+
+	public static String insToString(InputStream in, String encode) throws IOException {
+		if (encode == null || "".equals(encode)) {
+			encode = PostConstants.encoding;
+		}
+		String result = "";
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		byte[] bytes = new byte[1024];
+		int len = 0;
+		try {
+			while ((len = in.read(bytes)) > 0) {
+				out.write(bytes, 0, len);
+			}
+			result = out.toString(encode);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			try {
+				if (out != null) {
+					out.close();
+				}
+			} catch (Exception e2) {
+			}
+		}
+		return result;
+	}
+
+}

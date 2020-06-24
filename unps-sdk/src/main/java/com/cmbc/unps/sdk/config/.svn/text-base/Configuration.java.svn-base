@@ -1,0 +1,51 @@
+package com.cmbc.unps.sdk.config;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class Configuration {
+	private static String paymentFile;
+
+	private static Map<String, String> paymentConfig = new HashMap<String, String>();
+
+	private static Map<String, Integer> integerParams = new HashMap<String, Integer>();
+
+	/* ******************************************************************* */
+	public static String getPaymentFile() {
+		return paymentFile;
+	}
+
+	public static void setPaymentFile(String paymentFile) {
+		Configuration.paymentFile = paymentFile;
+	}
+
+	/* ******************************************************************* */
+	public static String getConfig(String key) {
+		return paymentConfig.get(key);
+	}
+
+	public static void setConfig(String key, String value) {
+		paymentConfig.put(key, value);
+	}
+
+	/* ******************************************************************* */
+	public static Integer getIntegerParams(String key) {
+		return integerParams.get(key);
+	}
+
+	public static void setIntegerParams(String key, Integer value) {
+		integerParams.put(key, value);
+	}
+
+	/* ******************************************************************* */
+	public static boolean isEmpty() {
+		if (0 == paymentConfig.size()) {
+			return true;
+		}
+		return false;
+	}
+
+	public static Map<String, String> getPaymentConfig() {
+		return paymentConfig;
+	}
+}
