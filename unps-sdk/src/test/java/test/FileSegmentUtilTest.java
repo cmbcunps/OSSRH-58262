@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.List;
 
-import com.cmbc.unps.sdk.file.FileSegment;
-import com.cmbc.unps.sdk.file.FileSegmentUtil;
+import com.github.cmbcunps.sdk.file.FileSegment;
+import com.github.cmbcunps.sdk.file.FileSegmentUtil;
 
 public class FileSegmentUtilTest {
 	public static void main(String[] args) throws IOException {

@@ -2,7 +2,7 @@ package test;
 
 import java.io.File;
 
-import com.cmbc.unps.sdk.util.ZipUtil;
+import com.github.cmbcunps.sdk.util.ZipUtil;
 
 public class ZipUtilTest {
 
