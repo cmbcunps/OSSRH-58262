@@ -1,0 +1,97 @@
+package com.cmbc.unps.sdk.service;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import com.cmbc.unps.sdk.cert.Cert;
+import com.cmbc.unps.sdk.cert.CertConfig;
+import com.cmbc.unps.sdk.cert.CertLoader;
+import com.cmbc.unps.sdk.config.ConfigConstants;
+import com.cmbc.unps.sdk.config.Configuration;
+import com.cmbc.unps.sdk.exception.ErrorCode;
+import com.cmbc.unps.sdk.exception.PlatformException;
+import com.cmbc.unps.sdk.util.TxtFileUtil;
+import com.cmbc.unps.sdk.util.UnpsUtils;
+
+public class CertService {
+	private static Logger logger = Logger.getLogger(CertService.class);
+
+	public static boolean init() {
+		try {
+			// cust
+			String merchantNum = Configuration.getConfig(ConfigConstants.unps_merchantnum);
+			String merCertPath = Configuration.getConfig(ConfigConstants.unps_custcertpath);
+			String merSm2Path = Configuration.getConfig(ConfigConstants.unps_custsm2path);
+			String merSm2Password = Configuration.getConfig(ConfigConstants.unps_custsm2pass);
+			Cert merchantCert = CertLoader.loadMerchantCert(merchantNum, merCertPath, merSm2Path, merSm2Password);
+
+			// cmbc
+			String cmbcCertPath = Configuration.getConfig(ConfigConstants.unps_cmbccertpath);
+			String cmbcSm2Path = Configuration.getConfig(ConfigConstants.unps_cmbcsm2path);
+			String cmbcSm2Password = Configuration.getConfig(ConfigConstants.unps_cmbcsm2pass);
+
+			Cert cmbcCert = CertLoader.loadCmbcCert(cmbcCertPath, cmbcSm2Path, cmbcSm2Password);
+
+			merchantCert.cmbcCert = cmbcCert.cmbcCert;
+			merchantCert.cmbcPublicKey = cmbcCert.cmbcPublicKey;
+			merchantCert.cmbcSm2Cert = cmbcCert.cmbcSm2Cert;
+			merchantCert.cmbcPrivateKey = cmbcCert.cmbcPrivateKey;
+			merchantCert.cmbcSm2Password = cmbcCert.cmbcSm2Password;
+
+			CertConfig.addDefaultMerchantCert(merchantCert);
+			return true;
+		} catch (PlatformException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public static Cert loadMerchantCert(String merchantNum, String merCertPath, String merSm2Path, String merSm2Password, String cmbcCertPath)
+			throws PlatformException {
+		Cert merchantCert = null;
+		try {
+			merchantCert = CertLoader.loadMerchantCert(merchantNum, merCertPath, merSm2Path, merSm2Password);
+		} catch (PlatformException e) {
+			throw e;
+		}
+		try {
+			if (!UnpsUtils.isBlank(cmbcCertPath)) {
+				Cert cmbcCert = CertLoader.loadCmbcCert(cmbcCertPath, null, null);
+				merchantCert.cmbcCert = cmbcCert.cmbcCert;
+				merchantCert.cmbcPublicKey = cmbcCert.cmbcPublicKey;
+			}
+		} catch (PlatformException e) {
+			logger.error("加载证书失败-" + cmbcCertPath + "-" + e.getMessage());
+		}
+		return merchantCert;
+	}
+
+	public static boolean saveCustSm2Pass(String filePath) throws PlatformException {
+		File file = new File(filePath);
+		try {
+			TxtFileUtil.reCreatFile(file);
+			List<String> strList = new ArrayList<String>();
+			String str = null;
+			for (Cert cert : CertConfig.merchantCertMap.values()) {
+				str = cert.merchantNum + "=" + cert.merSm2Password;
+				strList.add(str);
+			}
+			return TxtFileUtil.writeToTxt(strList, filePath);
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new PlatformException(ErrorCode.UNPS_CORE_013, e.getMessage());
+		}
+	}
+
+	public static List<String> listCerts() {
+		List<String> strList = new ArrayList<String>();
+		for (Cert cert : CertConfig.merchantCertMap.values()) {
+			strList.add(cert.merchantNum);
+		}
+		return strList;
+	}
+}

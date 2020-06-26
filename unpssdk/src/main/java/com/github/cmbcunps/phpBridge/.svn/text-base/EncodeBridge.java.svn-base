@@ -1,0 +1,50 @@
+package com.cmbc.unps.phpBridge;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.cmbc.unps.sdk.agent.CMBCUnpsAgent;
+import com.cmbc.unps.sdk.config.ConfigConstants;
+import com.cmbc.unps.sdk.config.Configuration;
+import com.cmbc.unps.sdk.util.UnpsUtils;
+
+/**
+ * 
+ * 交易类PHP版本接入类(后台交易)
+ * 
+ * @author Administrator
+ * 
+ */
+public class EncodeBridge {
+	private static Logger logger = Logger.getLogger(EncodeBridge.class);
+
+	public static final String encodeService(String strBiz) {
+		logger.info("----------------------Service Start-----------------------------");
+		String responseStr = null;
+		try {
+			Map<String, String> requestMap = UnpsUtils.initHeadData(strBiz);
+			Map<String, String> submitMap = new HashMap<String, String>();
+			Map<String, String> busiMap = new HashMap<String, String>();
+			UnpsUtils.splidReqMap(requestMap, submitMap, busiMap);
+
+			String merchantNum = Configuration.getConfig(ConfigConstants.unps_merchantnum);
+			String securitytype = Configuration.getConfig(ConfigConstants.unps_securitytype);
+
+			UnpsUtils.splidReqMap(requestMap, submitMap, busiMap);
+			// ISecuRule secuRule = SecureRuleService.getSecureRule(securitytype);
+			// Map<String, String> encResultMap = secuRule.encodeMsg(merchantNum, busiMap);
+
+			CMBCUnpsAgent cmbcUnpsAgent = new CMBCUnpsAgent();
+			responseStr = cmbcUnpsAgent.encodeMsgToString(merchantNum, securitytype, busiMap);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return "{\"gateReturnType\":\"E\",\"gateReturnCode\":\"\",\"gateReturnMessage\":\"" + e.getMessage() + "\"}";
+		} finally {
+			logger.info(responseStr);
+		}
+		logger.info("----------------------Service End-----------------------------");
+		return responseStr;
+	}
+}

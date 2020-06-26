@@ -1,0 +1,54 @@
+package com.cmbc.unps.phpBridge;
+
+import org.apache.log4j.Logger;
+
+import com.cmbc.unps.sdk.agent.CMBCUnpsAgent;
+import com.cmbc.unps.sdk.config.ConfigConstants;
+import com.cmbc.unps.sdk.config.Configuration;
+import com.cmbc.unps.sdk.util.UnpsUtils;
+
+/**
+ * 
+ * 对返回的结果报文解密验签
+ * 
+ * @author Administrator
+ * 
+ */
+public class DecAndVerifyBridge {
+
+	private static Logger logger = Logger.getLogger(DecAndVerifyBridge.class);
+
+	public static final String cmbcBaseService(String strBiz) {
+		logger.info("----------------------Service Start-----------------------------");
+		String busiMapJson = null;
+		try {
+			// 1.如果配置文件为空，则需要加载配置
+			if (Configuration.isEmpty()) {
+				busiMapJson = "{\"gateReturnType\":\"E\",\"gateReturnCode\":\"\",\"gateReturnMessage\":\"Configuration is null, please call LoadConfigBridge Class First\"}";
+			} else {
+				// 2.校验
+				if (UnpsUtils.isBlank(strBiz)) {
+					busiMapJson = "{\"gateReturnType\":\"E\",\"gateReturnCode\":\"\",\"gateReturnMessage\":\"Input businessContext is null\"}";
+				} else {
+					// 3.解密
+					String merchantNum = Configuration.getConfig(ConfigConstants.unps_merchantnum);
+					String securityType = Configuration.getConfig(ConfigConstants.unps_securitytype);
+					// SecureRuleService secureRuleService = new SecureRuleService();
+					// busiMapJson = secureRuleService.decodeMsgToString(merchantNum, securityType, strBiz);
+
+					CMBCUnpsAgent cmbcUnpsAgent = new CMBCUnpsAgent();
+					busiMapJson = cmbcUnpsAgent.decodeMsgToString(merchantNum, securityType, strBiz);
+				}
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			busiMapJson = "{\"gateReturnType\":\"E\",\"gateReturnCode\":\"\",\"gateReturnMessage\":\"Error:" + e.getMessage() + "\"}";
+		} finally {
+			logger.info(busiMapJson);
+			logger.info("----------------------Service End-----------------------------");
+		}
+		return busiMapJson;
+
+	}
+
+}

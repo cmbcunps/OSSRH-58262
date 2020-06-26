@@ -1,0 +1,77 @@
+package com.cmbc.unps.sdk.service;
+
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.cmbc.unps.sdk.exception.PlatformException;
+import com.cmbc.unps.sdk.security.ISecuRule;
+import com.cmbc.unps.sdk.security.SecuRuleSM203;
+import com.cmbc.unps.sdk.util.Constants;
+
+public class SecureRuleService {
+
+	private static Logger logger = Logger.getLogger(SecureRuleService.class);
+
+	public static ISecuRule getSecureRule(String securityType) {
+		if (Constants.SECU_RULE_SM203.equals(securityType)) {
+			return new SecuRuleSM203();
+		} else {
+			logger.error("找不到商户安全集成方案-" + securityType);
+			return null;
+		}
+	}
+
+	/**
+	 * 解密（返回业务报文）
+	 * 
+	 * @param merchantNum
+	 * @param securityType
+	 * @param responseMap
+	 * @return
+	 * @throws PlatformException
+	 */
+	public Map<String, Object> decodeMsg(String merchantNum, String securityType, Map<String, String> responseMap) throws PlatformException {
+		ISecuRule secuRule = SecureRuleService.getSecureRule(securityType);
+		return secuRule.decodeMsg(merchantNum, responseMap);
+	}
+
+	public Map<String, Object> decodeMsg(String merchantNum, String securityType, String responseMap) throws PlatformException {
+		ISecuRule secuRule = SecureRuleService.getSecureRule(securityType);
+		return secuRule.decodeMsg(merchantNum, responseMap);
+	}
+
+	public String decodeMsgToString(String merchantNum, String securityType, Map<String, String> responseMap) throws PlatformException {
+		ISecuRule secuRule = SecureRuleService.getSecureRule(securityType);
+		return secuRule.decodeMsgToString(merchantNum, responseMap);
+	}
+
+	public String decodeMsgToString(String merchantNum, String securityType, String responseMap) throws PlatformException {
+		ISecuRule secuRule = SecureRuleService.getSecureRule(securityType);
+		return secuRule.decodeMsgToString(merchantNum, responseMap);
+	}
+
+	public Map<String, Object> decodeMsgAll(String merchantNum, String securityType, Map<String, String> responseMap) throws PlatformException {
+		Map<String, Object> responseBusiMap = decodeMsg(merchantNum, securityType, responseMap);
+		responseBusiMap.putAll(responseMap);
+		return responseBusiMap;
+	}
+
+	/**
+	 * 
+	 * @param merchantNum
+	 * @param securityType
+	 * @param busiMap
+	 * @return
+	 * @throws PlatformException
+	 */
+	public String encodeMsgToString(String merchantNum, String securityType, Map<String, String> busiMap) throws PlatformException {
+		ISecuRule secuRule = SecureRuleService.getSecureRule(securityType);
+		return secuRule.encodeMsgToString(merchantNum, busiMap);
+	}
+
+	public String encodeMsgToString(String merchantNum, String securityType, String busiMapStr) throws PlatformException {
+		ISecuRule secuRule = SecureRuleService.getSecureRule(securityType);
+		return secuRule.encodeMsgToString(merchantNum, busiMapStr);
+	}
+}
