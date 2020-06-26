@@ -84,6 +84,7 @@ public class UnpsUtil {
 		}
 		return true;
 	}
+
 	// public static Map<String, String> itemsToMap(String str) {
 	// Map<String, String> map = new HashMap<String, String>();
 	// if (str == null || str.length() == 0) {
@@ -114,4 +115,14 @@ public class UnpsUtil {
 		}
 	}
 
+	public static boolean stringIsBlank(String str) {
+		if (str == null) {
+			return true;
+		}
+		str = str.trim();
+		if ("".equals(str)) {
+			return true;
+		}
+		return false;
+	}
 }

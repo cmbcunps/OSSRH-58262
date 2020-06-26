@@ -1,4 +1,4 @@
-package com.github.cmbcunps.phpBridge;
+package com.cmbcunps.phpBridge;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

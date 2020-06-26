@@ -3,7 +3,6 @@ package com.github.cmbcunps.sdk.service;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,6 +13,7 @@ import com.github.cmbcunps.sdk.security.Ciphertext;
 import com.github.cmbcunps.sdk.security.ISecuRule;
 import com.github.cmbcunps.sdk.security.SecuRuleSM203;
 import com.github.cmbcunps.sdk.util.Constants;
+import com.github.cmbcunps.sdk.util.UnpsUtil;
 
 public class SecureRuleService {
 	private Logger logger = LoggerFactory.getLogger(getClass());
@@ -103,7 +103,7 @@ public class SecureRuleService {
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> decodeAndVerify(String merchantNum, String securityType, String businessContext) throws PlatformException {
 		Map<String, Object> busiMap = new HashMap<String, Object>();
-		if (StringUtils.isBlank(businessContext)) {
+		if (UnpsUtil.stringIsBlank(businessContext)) {
 			return busiMap;
 		}
 		Ciphertext ciphertext = secuRuleSM203.decodeMsg(merchantNum, businessContext);

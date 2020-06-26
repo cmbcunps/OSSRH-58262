@@ -1,4 +1,4 @@
-package com.github.cmbcunps.phpBridge;
+package com.cmbcunps.phpBridge;
 
 import java.util.Map;
 

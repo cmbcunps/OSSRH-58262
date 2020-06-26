@@ -1,4 +1,4 @@
-package com.github.cmbcunps.phpBridge;
+package com.cmbcunps.phpBridge;
 
 import java.util.Map;
 
@@ -10,10 +10,10 @@ import com.github.cmbcunps.sdk.util.JsonHelper;
 import com.github.cmbcunps.sdk.util.UnpsUtil;
 
 /**
- * 交易类PHP版本接入类(后台交易)
+ * 查询交易，PHP版本接入类
  */
-public class TransBridge {
-	private static Logger logger = LoggerFactory.getLogger(TransBridge.class);
+public class QueryBridge {
+	private static Logger logger = LoggerFactory.getLogger(QueryBridge.class);
 
 	public static final String cmbcBaseService(String strBiz) {
 		logger.info("----------------------Service Start-----------------------------");
@@ -22,11 +22,11 @@ public class TransBridge {
 			Map<String, String> requestMap = UnpsUtil.initHeadData(strBiz);
 			//
 			CMBCUnpsAgent cmbcUnpsAgent = new CMBCUnpsAgent();
-			Map<String, Object> responseMapAll = cmbcUnpsAgent.postTransAll(requestMap);
+			Map<String, Object> responseMapAll = cmbcUnpsAgent.postQueryAll(requestMap);
 			//
 			responseStr = JsonHelper.objectToJson(responseMapAll);
 		} catch (Exception e) {
-			logger.error("{}", e);
+			logger.error(e.getMessage());
 			responseStr = "{\"gateReturnType\":\"E\",\"gateReturnCode\":\"\",\"gateReturnMessage\":\"" + e.getMessage() + "\"}";
 		} finally {
 			logger.info(responseStr);
@@ -34,4 +34,5 @@ public class TransBridge {
 		logger.info("----------------------Service End-----------------------------");
 		return responseStr;
 	}
+
 }
