@@ -75,7 +75,7 @@ public class CmbcFileService {
 		byte[] fileBytes = null;
 		try {
 			currentSegmentContentBase64String = (String) responseMap.get(Constants.currentSegmentContentBase64String);
-			base64Merge = Base64Util.base64ToStringBytes(currentSegmentContentBase64String);
+			base64Merge = currentSegmentContentBase64String.getBytes("UTF-8");
 			fileBytes = Base64Util.getMergeBytes(fileBytes, base64Merge);
 			//
 			JSONArray fileSegments = (JSONArray) responseMap.get(Constants.fileAllSegments);
@@ -90,7 +90,7 @@ public class CmbcFileService {
 					return responseMap;
 				}
 				currentSegmentContentBase64String = (String) respMapN.get(Constants.currentSegmentContentBase64String);
-				base64Merge = Base64Util.base64ToStringBytes(currentSegmentContentBase64String);
+				base64Merge = currentSegmentContentBase64String.getBytes("UTF-8");
 				fileBytes = Base64Util.getMergeBytes(fileBytes, base64Merge);
 			}
 			TxtFileUtil.writeToTxt(fileBytes, filePath, fileName);

@@ -11,6 +11,11 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.cmbcunps.sdk.config.ConfigConstants;
+import com.github.cmbcunps.sdk.config.Configuration;
+import com.github.cmbcunps.sdk.exception.ErrorCodeEnum;
+import com.github.cmbcunps.sdk.exception.PlatformException;
+
 public class TxtFileUtil {
 
 	public static boolean reCreatFile(String filePath, String fileName) throws Exception {
@@ -36,7 +41,7 @@ public class TxtFileUtil {
 	}
 
 	/**
-	 * 写文件
+	 * 写文件 追加写入行
 	 * 
 	 * @throws IOException
 	 * @throws Exception
@@ -140,9 +145,11 @@ public class TxtFileUtil {
 			foStream = new FileOutputStream(filePath + fileName);
 			osWriter = new OutputStreamWriter(foStream, "utf-8");
 			bWriter = new BufferedWriter(osWriter);
-			for (String str : strList) {
-				bWriter.newLine();
-				bWriter.append(str);
+			for (int i = 0; i < strList.size(); i++) {
+				if (i > 0) {
+					bWriter.newLine();
+				}
+				bWriter.append(strList.get(i));
 			}
 			bWriter.newLine();
 			bWriter.flush();
@@ -195,5 +202,27 @@ public class TxtFileUtil {
 				e2.printStackTrace();
 			}
 		}
+	}
+
+	public static String fileContentStrToTxt(String merchantSeq, String fileContentStr) throws PlatformException {
+		if (fileContentStr != null && fileContentStr.length() > 0) {
+			try {
+				String filePath_req = Configuration.getConfig(ConfigConstants.filePath_req);
+				if (!filePath_req.endsWith("/")) {
+					filePath_req = filePath_req + "/";
+				}
+				String[] fileContentStrArray = fileContentStr.split("[/^]");
+				List<String> strList = new ArrayList<String>();
+				for (String str : fileContentStrArray) {
+					strList.add(str);
+				}
+				writeToTxt(strList, filePath_req, merchantSeq + ".txt");
+				//
+				return filePath_req + merchantSeq + ".txt";
+			} catch (Exception e) {
+				throw new PlatformException(ErrorCodeEnum.UNPS_CORE_013, e);
+			}
+		}
+		return null;
 	}
 }

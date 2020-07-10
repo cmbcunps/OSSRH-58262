@@ -13,13 +13,11 @@ public class RandomGenerator {
 		return str.substring(0, 16).toUpperCase();
 	}
 
-	public static synchronized String genMerchantSeq(String merchantnum) {
+	public static synchronized String genMerchantSeq(String merchantNum) {
 		// String merchantNo = Configuration.getConfig(ConfigConstants.unps_merchantnum);
-		String merchantNo = merchantnum;
 		String dateTime = DateFormter.formatDateTime(new Date());
-
-		int seqLength = 50 - merchantNo.length() - dateTime.length();
-		String merchantSeq = merchantNo + String.format("%0" + seqLength + "d", seq) + dateTime; // 仅参考，商户自定义流水号生成
+		int seqLength = 50 - merchantNum.length() - dateTime.length();
+		String merchantSeq = merchantNum + String.format("%0" + seqLength + "d", seq) + dateTime; // 仅参考，商户自定义流水号生成
 		seq++;
 		return merchantSeq;
 	}
