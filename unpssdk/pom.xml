@@ -5,7 +5,7 @@
 	<groupId>com.cmbcunps</groupId>
 	<!-- <groupId>com.github.cmbcunps</groupId> -->
 	<artifactId>unpssdk</artifactId>
-	<version>2.0.20200608</version>
+	<version>2.0.20200710</version>
 	<name>unpssdk</name>
 	<description>unps sdk</description>
 
