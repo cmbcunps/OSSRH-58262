@@ -1,0 +1,67 @@
+package com.cmbc.unps.phpBridge;
+
+import org.apache.log4j.Logger;
+
+import com.cmbc.unps.sdk.agent.CMBCUnpsAgent;
+import com.cmbc.unps.sdk.service.ConfigurationService;
+import com.cmbc.unps.sdk.util.UnpsUtils;
+
+/**
+ * 
+ * 加载config类，全局仅需加载一次即可
+ * 
+ * @author Administrator
+ * 
+ */
+public class LoadConfigBridge {
+	private static Logger logger = Logger.getLogger(LoadConfigBridge.class);
+
+	public static final String loadConfig() {
+		return loadConfig("resource/config/payment.ini");
+	}
+
+	public static final String loadConfig(String configFilePath) {
+		logger.info("----------------------Service Start-----------------------------");
+		String responseStr = null;
+
+		if (UnpsUtils.isBlank(configFilePath)) {
+			responseStr = "Error: configFilePath cannot be null";
+		} else {
+			try {
+				// if (ConfigurationService.loadConfigAndCert(configFilePath)) {
+				if (CMBCUnpsAgent.loadConfigAndCert(configFilePath)) {
+					responseStr = "Success";
+				} else {
+					responseStr = "Error";
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				responseStr = "Error: error loading cert[" + configFilePath + "]." + e.getMessage();
+			}
+		}
+		logger.info("----------------------Service End-----------------------------");
+		return responseStr;
+	}
+
+	public static String loadConfiguation_classPath(String configFilePath) {
+		logger.info("----------------------Service Start-----------------------------");
+		String responseStr = null;
+
+		if (UnpsUtils.isBlank(configFilePath)) {
+			responseStr = "Error: configFilePath cannot be null";
+		} else {
+			try {
+				if (ConfigurationService.loadConfig_classPath(configFilePath)) {
+					responseStr = "Success";
+				} else {
+					responseStr = "Error";
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				responseStr = "Error: error loading cert[" + configFilePath + "]." + e.getMessage();
+			}
+		}
+		logger.info("----------------------Service End-----------------------------");
+		return responseStr;
+	}
+}

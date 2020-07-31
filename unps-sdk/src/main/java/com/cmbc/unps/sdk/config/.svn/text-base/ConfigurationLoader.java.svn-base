@@ -1,0 +1,80 @@
+package com.cmbc.unps.sdk.config;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import org.apache.log4j.Logger;
+
+import com.cmbc.unps.sdk.exception.ErrorCode;
+import com.cmbc.unps.sdk.exception.PlatformException;
+
+public class ConfigurationLoader {
+
+	private static Logger logger = Logger.getLogger(ConfigurationLoader.class);
+
+	public static boolean loadConfig(String paymentFile) throws PlatformException {
+		logger.info("loadConfiguation-" + paymentFile);
+		Configuration.setPaymentFile(paymentFile);
+
+		boolean flag = false;
+		Properties props = new Properties();
+		InputStream inputStream = null;
+		try {
+			inputStream = new FileInputStream(paymentFile);
+			props.load(inputStream);
+			for (Object key : props.keySet()) {
+				Object value = props.get(key);
+				if (key != null && value != null) {
+					Configuration.setConfig((String) key, (String) value);
+					logger.info(key + "=" + value);
+				}
+			}
+			flag = true;
+		} catch (IOException e) {
+			throw new PlatformException(ErrorCode.UNPS_CORE_001, e.getMessage());
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return flag;
+	}
+
+	public static boolean loadConfig_classPath(String paymentFile) throws PlatformException {
+		logger.info("loadConfiguation-" + paymentFile);
+		Configuration.setPaymentFile(paymentFile);
+
+		boolean flag = false;
+		Properties props = new Properties();
+		InputStream inputStream = null;
+		try {
+			inputStream = Configuration.class.getResourceAsStream(paymentFile);
+			props.load(inputStream);
+			for (Object key : props.keySet()) {
+				Object value = props.get(key);
+				if (key != null && value != null) {
+					Configuration.setConfig((String) key, (String) value);
+					logger.info(key + "=" + value);
+				}
+			}
+			flag = true;
+		} catch (IOException e) {
+			throw new PlatformException(ErrorCode.UNPS_CORE_001, e.getMessage());
+		} finally {
+			if (inputStream != null) {
+				try {
+					inputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return flag;
+	}
+}

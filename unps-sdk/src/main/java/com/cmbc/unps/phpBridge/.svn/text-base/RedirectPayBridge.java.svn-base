@@ -1,0 +1,35 @@
+package com.cmbc.unps.phpBridge;
+
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.cmbc.unps.sdk.agent.CMBCUnpsAgent;
+import com.cmbc.unps.sdk.util.Constants;
+import com.cmbc.unps.sdk.util.UnpsUtils;
+
+public class RedirectPayBridge {
+	private static Logger logger = Logger.getLogger(RedirectPayBridge.class);
+
+	public static final String cmbcBaseService(String strBiz) {
+		logger.info("----------------------Service Start-----------------------------");
+		String responseStr = null;
+		try {
+			Map<String, String> requestMap = UnpsUtils.initHeadData(strBiz);
+			requestMap.put("transCode", Constants.PAY_T001);
+
+			// RedirectFormService service = new RedirectFormService();
+			// responseStr = service.genSubmitForm(requestMap);
+
+			CMBCUnpsAgent cmbcUnpsAgent = new CMBCUnpsAgent();
+			responseStr = cmbcUnpsAgent.genSubmitForm(requestMap);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			responseStr = "{\"gateReturnType\":\"E\",\"gateReturnCode\":\"\",\"gateReturnMessage\":\"" + e.getMessage() + "\"}";
+		} finally {
+			logger.info(responseStr);
+		}
+		logger.info("----------------------Service End-----------------------------");
+		return responseStr;
+	}
+}

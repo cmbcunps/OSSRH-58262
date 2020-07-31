@@ -1,0 +1,53 @@
+package com.cmbc.unps.phpBridge;
+
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.cmbc.unps.sdk.agent.CMBCUnpsAgent;
+import com.cmbc.unps.sdk.util.UnpsUtils;
+
+/**
+ * 
+ * 下载对账文件
+ * 
+ * @author Administrator
+ * 
+ */
+public class FileBridge {
+	private static Logger logger = Logger.getLogger(FileBridge.class);
+
+	public static final String cmbcBaseService(String strBiz) {
+		logger.info("----------------------Service Start-----------------------------");
+		String filePath = null;
+		try {
+			Map<String, String> requestMap = UnpsUtils.initHeadData(strBiz);
+			requestMap.put("segmentIndex", "0"); // 当前块,从零开始
+
+			String localFilePath = (String) requestMap.get("localFilePath");
+			if (UnpsUtils.isBlank(localFilePath)) {
+				return "Error: localFilePath cannot be null";
+			} else {
+				requestMap.remove("localFilePath");
+				if (localFilePath.charAt(localFilePath.length() - 1) != '/') {
+					localFilePath = localFilePath + "/";
+				}
+			}
+
+			// ISecuRule secuRule = SecureRuleService.getSecureRule("SM203");
+			// CMBCPostService service = new CMBCPostService();
+			// localFilePath = service.postFile(secuRule, requestMap, localFilePath);
+
+			CMBCUnpsAgent cmbcUnpsAgent = new CMBCUnpsAgent();
+			localFilePath = cmbcUnpsAgent.postFile(requestMap, localFilePath);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			filePath = "Error: " + e.getMessage();
+		} finally {
+			logger.info(filePath);
+		}
+		logger.info("----------------------Service End-----------------------------");
+		return filePath;
+	}
+
+}

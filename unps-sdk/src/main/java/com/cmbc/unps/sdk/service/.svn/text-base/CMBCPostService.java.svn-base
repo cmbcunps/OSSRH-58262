@@ -1,0 +1,245 @@
+package com.cmbc.unps.sdk.service;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.cmbc.unps.sdk.config.ConfigConstants;
+import com.cmbc.unps.sdk.config.Configuration;
+import com.cmbc.unps.sdk.exception.PlatformException;
+import com.cmbc.unps.sdk.http.CMBCPostClient;
+import com.cmbc.unps.sdk.security.ISecuRule;
+import com.cmbc.unps.sdk.util.Base64Util;
+import com.cmbc.unps.sdk.util.Constants;
+import com.cmbc.unps.sdk.util.UnpsUtils;
+
+public class CMBCPostService {
+
+	private static Logger logger = Logger.getLogger(CMBCPostService.class);
+
+	/**
+	 * 
+	 * @param secuRule
+	 * @param requestMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map<String, String> postQuery(ISecuRule secuRule, Map<String, String> requestMap) throws Exception {
+		String requestUrl = Configuration.getConfig(ConfigConstants.unps_queryurl);
+		return postCMBC(secuRule, requestMap, requestUrl);
+	}
+
+	public Map<String, String> postQuery(ISecuRule secuRule, Map<String, String> requestMap, String requestUrl) throws Exception {
+		return postCMBC(secuRule, requestMap, requestUrl);
+	}
+
+	public Map<String, Object> postQueryAll(ISecuRule secuRule, Map<String, String> requestMap) throws Exception {
+		String requestUrl = Configuration.getConfig(ConfigConstants.unps_queryurl);
+		return postCMBCAll(secuRule, requestMap, requestUrl);
+	}
+
+	public Map<String, Object> postQueryAll(ISecuRule secuRule, Map<String, String> requestMap, String requestUrl) throws Exception {
+		return postCMBCAll(secuRule, requestMap, requestUrl);
+	}
+
+	/**
+	 * 
+	 * @param secuRule
+	 * @param requestMap
+	 * @return
+	 * @throws Exception
+	 */
+	public Map<String, String> postTrans(ISecuRule secuRule, Map<String, String> requestMap) throws Exception {
+		String requestUrl = Configuration.getConfig(ConfigConstants.unps_transurl);
+		return postCMBC(secuRule, requestMap, requestUrl);
+	}
+
+	public Map<String, String> postTrans(ISecuRule secuRule, Map<String, String> requestMap, String requestUrl) throws Exception {
+		return postCMBC(secuRule, requestMap, requestUrl);
+	}
+
+	public Map<String, Object> postTransAll(ISecuRule secuRule, Map<String, String> requestMap) throws Exception {
+		logger.debug(JSON.toJSONString(Configuration.getPaymentConfig()));
+		String requestUrl = Configuration.getConfig(ConfigConstants.unps_transurl);
+		return postCMBCAll(secuRule, requestMap, requestUrl);
+	}
+
+	public Map<String, Object> postTransAll(ISecuRule secuRule, Map<String, String> requestMap, String requestUrl) throws Exception {
+		return postCMBCAll(secuRule, requestMap, requestUrl);
+	}
+
+	/**
+	 * 
+	 * @param secuRule
+	 * @param requestMap
+	 * @param requestUrl
+	 * @return
+	 * @throws Exception
+	 */
+	public Map<String, String> postCMBC(ISecuRule secuRule, Map<String, String> requestMap, String requestUrl) throws Exception {
+		Map<String, String> submitMap = new HashMap<String, String>();
+		Map<String, String> busiMap = new HashMap<String, String>();
+
+		initFileContent(requestMap);
+		UnpsUtils.splidReqMap(requestMap, submitMap, busiMap);
+
+		logger.info("requestUrl:" + requestUrl);
+		logger.info("submitMap:" + JSON.toJSONString(submitMap));
+
+		String merchantNum = (String) requestMap.get("merchantNum");
+		submitMap.put(Constants.businessContext, secuRule.encodeMsgToString(merchantNum, busiMap));
+
+		CMBCPostClient client = new CMBCPostClient();
+		Map<String, String> responseMap = client.postCmbc(requestUrl, submitMap);
+
+		logger.info("responseMap:" + JSON.toJSONString(responseMap));
+		return responseMap;
+	}
+
+	public Map<String, Object> postCMBCAll(ISecuRule secuRule, Map<String, String> requestMap, String requestUrl) throws Exception {
+		Map<String, String> responseMap = postCMBC(secuRule, requestMap, requestUrl);
+		Map<String, Object> responseBusiMap = new HashMap<String, Object>();
+
+		String merchantNum = (String) requestMap.get("merchantNum");
+		responseBusiMap = secuRule.decodeMsg(merchantNum, responseMap);
+		responseBusiMap.putAll(responseMap);
+		return responseBusiMap;
+	}
+
+	private void initFileContent(Map<String, String> requestMap) throws IOException {
+		String fileContentStr = (String) requestMap.get("fileContentStr");
+		if (fileContentStr != null && fileContentStr.length() > 0) {
+			String merchantSeq = (String) requestMap.get("merchantSeq");
+			String filePath_req = Configuration.getConfig(ConfigConstants.filePath_req);
+			String fileName = filePath_req + merchantSeq + ".txt";
+			String[] fileContentStrArray = fileContentStr.split("[/^]");
+
+			File file = new File(fileName);
+			FileOutputStream fos = null;
+			OutputStreamWriter osw = null;
+			BufferedWriter bw = null;
+			try {
+				File filePath = file.getParentFile();
+				if (!filePath.exists()) {
+					filePath.mkdirs();
+				}
+
+				fos = new FileOutputStream(file);
+				osw = new OutputStreamWriter(fos, "utf-8");
+				bw = new BufferedWriter(osw);
+				for (int i = 0; i < fileContentStrArray.length; i++) {
+					if (i == 0) {
+						bw.append(fileContentStrArray[i]);
+					} else {
+						bw.newLine();
+						bw.append(fileContentStrArray[i]);
+					}
+				}
+				bw.newLine();
+				bw.flush();
+			} catch (IOException e) {
+				throw e;
+			} finally {
+				closeStream(fos, osw, bw);
+			}
+
+			String fileContent = null;
+			fileContent = com.cmbc.unps.sdk.util.Base64Util.fileToBase64(file);
+			logger.info("fileContent:" + fileContent);
+			requestMap.remove("fileContentStr");
+			requestMap.put("fileContent", fileContent);
+		}
+	}
+
+	private void closeStream(FileOutputStream fos, OutputStreamWriter osw, BufferedWriter bw) {
+		if (bw != null) {
+			try {
+				bw.close();
+			} catch (Exception e) {
+			}
+		}
+		if (osw != null) {
+			try {
+				osw.close();
+			} catch (Exception e) {
+			}
+		}
+		if (fos != null) {
+			try {
+				fos.close();
+			} catch (Exception e) {
+			}
+		}
+	}
+
+	public String postFile(ISecuRule secuRule, Map<String, String> requestMap, String localPath) throws Exception {
+		String requestUrl = Configuration.getConfig(ConfigConstants.unps_fileurl); // 从payment.ini配置中获取地址
+		return postFile(secuRule, requestMap, requestUrl, localPath);
+	}
+
+	public String postFile(ISecuRule secuRule, Map<String, String> requestMap, String requestUrl, String localPath) throws Exception {
+		Map<String, Object> responseMap = postCMBCAll(secuRule, requestMap, requestUrl);
+
+		String gateReturnType = (String) responseMap.get("gateReturnType");
+		if (!"S".equalsIgnoreCase(gateReturnType)) {
+			throw new PlatformException("F", (String) responseMap.get("gateReturnMessage"));
+		}
+		String busiType = (String) responseMap.get("busiType");
+		if (!"S".equalsIgnoreCase(busiType)) {
+			// 如果后台返回为E，则停止下载对账文件，直接将异常信息抛出
+			throw new PlatformException("F", (String) responseMap.get("busiMsg"));
+		}
+
+		String fileName = (String) responseMap.get("fileName");
+		String currentSegmentContentBase64String = (String) responseMap.get("currentSegmentContentBase64String");
+		byte[] base64Merge = currentSegmentContentBase64String.getBytes("UTF-8");
+		byte[] base64 = null;
+		base64 = Base64Util.getMergeBytes(base64, base64Merge);
+
+		JSONArray fileSegments = (JSONArray) responseMap.get("fileAllSegments");
+		int maxCount = fileSegments.size();
+		for (int count = 1; count < maxCount; count++) {
+			logger.debug("maxCount:" + maxCount + ",count:" + count);
+
+			requestMap.put("segmentIndex", count + "");
+			Map<String, Object> respMapN = postCMBCAll(secuRule, requestMap, requestUrl);
+			currentSegmentContentBase64String = (String) respMapN.get("currentSegmentContentBase64String");
+			byte[] baseMergeN = currentSegmentContentBase64String.getBytes("UTF-8");
+			base64 = Base64Util.getMergeBytes(base64, baseMergeN);
+		}
+
+		// 文件输出
+		String path = localPath;
+		if (!(localPath.endsWith("/") || localPath.endsWith("\\"))) {
+			path = localPath + "/";
+		}
+		File dir = new File(path);
+		if (!dir.exists()) {
+			// 目录不存在，生成目录
+			dir.mkdirs();
+		}
+		File file = new File(path + fileName);
+		if (file.exists() && file.isFile()) {
+			file.delete();
+		}
+		FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(file);
+			fos.write(base64);
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return path + fileName;
+	}
+
+}

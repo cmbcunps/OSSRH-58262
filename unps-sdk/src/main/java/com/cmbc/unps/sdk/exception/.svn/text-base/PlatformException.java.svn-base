@@ -1,0 +1,44 @@
+package com.cmbc.unps.sdk.exception;
+
+import org.apache.log4j.Logger;
+
+public class PlatformException extends Exception {
+
+	private static Logger logger = Logger.getLogger(PlatformException.class);
+
+	private static final long serialVersionUID = 1L;
+
+	protected String errorCode;
+
+	protected String errorMsg;
+
+	public PlatformException(String errorCode, String errorMsg) {
+		super(errorMsg);
+		this.errorCode = errorCode;
+		this.errorMsg = ErrorCode.getErrorMsg(errorCode) + errorMsg;
+
+		logger.error(this.errorCode + this.errorMsg);
+	}
+
+	public String getErrorCode() {
+		return errorCode;
+	}
+
+	public void setErrorCode(String errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	public String getErrorMsg() {
+		return errorMsg;
+	}
+
+	public void setErrorMsg(String errorMsg) {
+		this.errorMsg = errorMsg;
+	}
+
+	@Override
+	public String toString() {
+		return "PlatformException [errorCode=" + errorCode + ", errorMsg=" + errorMsg + "]";
+	}
+
+}
